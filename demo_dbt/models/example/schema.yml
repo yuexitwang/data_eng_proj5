@@ -3,33 +3,148 @@ version: 2
 
 models:
     - name: menacing_ratings
-      description: "takes all movies with keyword menace in mpaa rating "
+      description: >
+       materialized incremental view which joins movie_info_sample with info_type and returns movie_info rows where the info
+       type is 97 (MPAA rating) and the description of the rating contains '%menac% (to capture menace and menacing). 
+       On subsequent runthroughs, the incremental nature will only select films that have been added after our table was
+       created. While currently only 16 rows are returned at present, if suddenly millions of menacing films start to be made
+       every year, we'll be ready.
       columns:
           - name: id
+            description: Primary key.
             tests:
                 - unique
                 - not_null
           - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: info_type_id
+            description: Foreign key.
+          - name: info
+            description: Varchar
+            
+
+    - name: menacing_movies
+      description: "join menacing_ratings with movie_sample table to add title, extracts the rating level from mpaa ratings"
+      columns:
+          - name: id
+            description: Primary key.
+            tests:
+                - unique
+                - not_null
+          - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: title
+            description: Varchar
+          - name: info
+            description: Varchar
+          - name: ratings
+            description: Varchar
             tests:
                 - not_null
 
-    - name: menacing_movies
-      description: "join with movie_sample table, extracts the rating level from mpaa ratings"
+    - name: menacing_primary_countries
+      description: >
+       uses movie_ids of menancing_movies to gather initial countries. Will be unioned with menacing_secondary_countries later 
       columns:
-          - name: ratings      
+          - name: movie_id
+            description: Foreign key.
             tests:
                 - not_null
-                
+          - name: info
+            description: Varchar
+  
+  #STILL NEEDS TO BE DONE
     - name: menacing_runtimes
-      description: "extract country from runtime column for menacing movies"
+      description: >
+       configured as table so calls by subsequent models will be faster. Extract country from runtime column for menacing
+       movies
       columns:
-          - name: country      
+          - name: country  
+            description: markdown_string
             tests:
                 - not_null
                 
     - name: menacing_gross_countries
       description: "extract country from gross column for menacing movies"
       columns:
-          - name: country      
+          - name: movie_id
+            description: Foreign key.
             tests:
                 - not_null
+          - name: country 
+            description: markdown_string
+            tests:
+                - not_null
+                
+    - name: menacing_secondary_countries
+      description: performs union on menacing_gross_countries and menacing_runtime to combine countries
+      columns:
+          - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: country  
+            description: markdown_string
+            tests:
+                - not_null
+                
+    - name: menacing_final_countries
+      description: performs union on menacing_primary_countries and menacing_secondary_countries to combine to final list
+      columns:
+          - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: info
+            description: markdown_string
+
+                
+    - name: menacing_final_countries_rated
+      description: performs right join from menacing_final_countries on menacing_movies to add rating and countries 
+      columns:
+          - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: country 
+            description: markdown_string 
+            tests:
+                - not_null
+          - name: title
+            description: Varchar
+          - name: ratings
+            description: Varchar
+    # STILL NEEDS TO BE DONE
+    - name: menacing_movies_actors.sql
+      description: joins actors with casting to find actor list from menacing movies
+      columns:
+          - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: name    
+            description: markdown_string
+            tests:
+                - not_null
+                
+    - name: menacing_final_summary
+      description: partitions final list of countries by rating and adds collective country column for further analysis 
+      columns:
+          - name: movie_id
+            description: Foreign key.
+            tests:
+                - not_null
+          - name: title
+            description: Varchar
+          - name: ratings
+            description: Varchar
+            tests:
+                - not_null
+          - name: country_list
+            description: markdown_string
+          - name: country_count
+            description: number

@@ -1,5 +1,5 @@
 SELECT DISTINCT * 
-FROM menacing_countries
+FROM {{ref('menacing_primary_countries')}}
 UNION
 SELECT *
-FROM menacing_secondary_countries
+FROM {{ref('menacing_secondary_countries')}}

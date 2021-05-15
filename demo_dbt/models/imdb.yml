@@ -1,0 +1,11 @@
+version: 2
+sources:
+  - name: imdb
+    schema: public
+    tables:
+      - name: info_type
+      - name: actor_sample
+      - name: cast_sample
+      - name: movie_info_sample
+      - name: movie_sample
+      - name: role_type

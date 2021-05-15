@@ -2,20 +2,34 @@
 version: 2
 
 models:
-    - name: my_first_dbt_model
-      description: "A starter dbt model"
+    - name: menacing_ratings
+      description: "takes all movies with keyword menace in mpaa rating "
       columns:
           - name: id
-            description: "The primary key for this table"
             tests:
                 - unique
                 - not_null
-
-    - name: my_second_dbt_model
-      description: "A starter dbt model"
-      columns:
-          - name: id
-            description: "The primary key for this table"
+          - name: movie_id
             tests:
-                - unique
+                - not_null
+
+    - name: menacing_movies
+      description: "join with movie_sample table, extracts the rating level from mpaa ratings"
+      columns:
+          - name: ratings      
+            tests:
+                - not_null
+                
+    - name: menacing_runtimes
+      description: "extract country from runtime column for menacing movies"
+      columns:
+          - name: country      
+            tests:
+                - not_null
+                
+    - name: menacing_gross_countries
+      description: "extract country from gross column for menacing movies"
+      columns:
+          - name: country      
+            tests:
                 - not_null
